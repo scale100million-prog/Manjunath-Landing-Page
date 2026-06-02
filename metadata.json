@@ -1,0 +1,6 @@
+{
+  "name": "HealthyNation",
+  "description": "HealthyNation - Superhuman Fat Shredding 12-Week Transformation landing page. Designed to replicate the high-converting landing page for busy men over 30.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
