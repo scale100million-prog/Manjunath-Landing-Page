@@ -19,7 +19,7 @@ import FaqSection from './components/FaqSection';
 // Define path constants to avoid TypeScript module resolution errors during build
 const gymHeroBg = "/src/assets/images/gym_hero_bg_1780308842248.png";
 const superhumanSwitch = "/src/assets/images/superhuman_switch_1780308861342.png";
-const torsoSwitchGlow = "/src/assets/images/torso_switch_glow_1780308880034.png";
+const torsoSwitchGlow = "https://raw.githubusercontent.com/scale100million-prog/my-images/main/torso_switch_glow_1780308880034.png";
 const coachPortrait = "/src/assets/images/coach_portrait_1780308902426.png";
 
 export default function App() {
