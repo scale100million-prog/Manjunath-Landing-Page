@@ -20,7 +20,7 @@ import FaqSection from './components/FaqSection';
 const gymHeroBg = "/src/assets/images/gym_hero_bg_1780308842248.png";
 const superhumanSwitch = "https://raw.githubusercontent.com/scale100million-prog/my-images/main/superhuman_switch_1780308861342.png";
 const torsoSwitchGlow = "https://raw.githubusercontent.com/scale100million-prog/my-images/main/torso_switch_glow_1780308880034.png";
-const coachPortrait = "/src/assets/images/coach_portrait_1780308902426.png";
+const coachPortrait = "https://raw.githubusercontent.com/scale100million-prog/my-images/main/coach_portrait_1780308902426.png";
 
 export default function App() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
