@@ -4,6 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Prime Body OS™ | Lose 8 to 16 KG in 12 Weeks</title>
+    <!-- Global safe handler for background script fetch rejections -->
+    <script>
+      window.addEventListener('unhandledrejection', function(event) {
+        if (event && event.reason && (
+          event.reason.message === 'Failed to fetch' ||
+          (typeof event.reason === 'string' && event.reason.includes('fetch')) ||
+          event.reason.name === 'TypeError'
+        )) {
+          // Suppress third-party analytics / beacon / tracking fetch rejections in sandbox iframe
+          event.preventDefault();
+        }
+      });
+    </script>
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

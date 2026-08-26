@@ -40,13 +40,13 @@ function MainContent() {
           {/* Badge to headline: 14px mobile / 28px desktop gap */}
           <div className="h-[14px] md:h-[28px]" />
 
-          {/* Hero Headline: 72-80px desktop, 30px mobile, extrabold, line height 1.1 mobile / 1.05 desktop, max-width 1100px */}
+          {/* Hero Headline: 76-80px desktop, 24px mobile (22px on narrow 360px), extrabold, line height 1.2 mobile / 1.05 desktop, max-width 340px mobile / 1100px desktop */}
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="w-full max-w-[1100px] text-[30px] sm:text-[48px] md:text-[76px] lg:text-[80px] font-extrabold text-center leading-[1.1] md:leading-[1.05] tracking-tight"
+            className="w-full max-w-[340px] md:max-w-[1100px] mx-auto text-[22px] min-[375px]:text-[24px] md:text-[76px] lg:text-[80px] font-extrabold text-center leading-[1.2] md:leading-[1.05] tracking-[-0.02em]"
           >
             <span className="text-[#1A1A2E] block">
               Lose 8 to 16 KG in 12 Weeks

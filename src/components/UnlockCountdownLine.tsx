@@ -15,6 +15,10 @@ export const UnlockCountdownLine: React.FC<UnlockCountdownLineProps> = ({
   hasStartedPlaying: hasStartedPlayingProp,
 }) => {
   const gate = useGate();
+  if (!gate.gateEnabled) {
+    return null;
+  }
+
   const watchedCount = watchedCountProp !== undefined ? watchedCountProp : gate.watchedSeconds.size;
   const isUnlocked = isUnlockedProp !== undefined ? isUnlockedProp : gate.isUnlocked;
   const hasStartedPlaying = hasStartedPlayingProp !== undefined ? hasStartedPlayingProp : gate.hasStartedPlaying;

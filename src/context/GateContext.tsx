@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 const WISTIA_MEDIA_ID = 'hp3uhhs1jy';
+const GATE_ENABLED = false;
 
 export interface GateContextType {
   watchedSeconds: Set<number>;
   isUnlocked: boolean;
+  gateEnabled: boolean;
   remaining: number;
   handleFound: boolean;
   hasStartedPlaying: boolean;
@@ -57,53 +59,33 @@ export const GateProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const previousUnlockedStateRef = useRef(watchedSeconds.size >= 60);
 
   // Derived values computed fresh on every render
-  const isUnlocked = failOpen || watchedSeconds.size >= 60;
+  const isUnlocked = !GATE_ENABLED || failOpen || watchedSeconds.size >= 60;
   const remaining = Math.max(0, 60 - watchedSeconds.size);
 
-  // Helper to read current video time from player handles
+  // Helper to record watched time in seconds
+  const recordTime = (t: number) => {
+    if (typeof t !== 'number' || !Number.isFinite(t) || t < 0) return;
+    const sec = Math.floor(t);
+    if (!Number.isFinite(sec) || sec < 0) return;
+
+    setHasStartedPlaying(true);
+    setWatchedSeconds((prev) => {
+      if (prev.has(sec)) return prev;
+      const next = new Set(prev);
+      next.add(sec);
+      try {
+        const arr = Array.from(next).filter((n) => typeof n === 'number' && Number.isFinite(n));
+        sessionStorage.setItem('pbos_watched_v2', JSON.stringify(arr));
+      } catch (err) {
+        console.error(err);
+      }
+      return next;
+    });
+  };
+
+  // Helper to read current video time from player handles safely without throwing
   const getCurrentTime = (): number | null => {
-    // 1. (window as any).Wistia?.api?.("hp3uhhs1jy")
-    try {
-      const wistiaApi = (window as any).Wistia?.api?.(WISTIA_MEDIA_ID);
-      if (wistiaApi) {
-        if (!handleFoundRef.current) {
-          handleFoundRef.current = true;
-          setHandleFound(true);
-        }
-        if (typeof wistiaApi.time === 'function') {
-          const t = wistiaApi.time();
-          if (typeof t === 'number' && Number.isFinite(t)) {
-            return t;
-          }
-        }
-      }
-    } catch (err) {
-      // ignore
-    }
-
-    // 2. document.querySelector('wistia-player')
-    try {
-      const el = document.querySelector('wistia-player') as any;
-      if (el) {
-        if (!handleFoundRef.current) {
-          handleFoundRef.current = true;
-          setHandleFound(true);
-        }
-        if (typeof el.currentTime === 'number' && Number.isFinite(el.currentTime)) {
-          return el.currentTime;
-        }
-        if (el.video && typeof el.video.time === 'function') {
-          const t = el.video.time();
-          if (typeof t === 'number' && Number.isFinite(t)) {
-            return t;
-          }
-        }
-      }
-    } catch (err) {
-      // ignore
-    }
-
-    // 3. (window as any)._wq handle stored in a ref from onReady
+    // 1. (window as any)._wq handle stored in a ref from onReady
     if (wqHandleRef.current) {
       try {
         const v = wqHandleRef.current;
@@ -122,12 +104,63 @@ export const GateProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
+    // 2. document.querySelector('wistia-player')
+    try {
+      const el = document.querySelector('wistia-player') as any;
+      if (el) {
+        if (!handleFoundRef.current) {
+          handleFoundRef.current = true;
+          setHandleFound(true);
+        }
+        if (typeof el.currentTime === 'number' && Number.isFinite(el.currentTime)) {
+          return el.currentTime;
+        }
+        if (typeof el.time === 'function') {
+          const t = el.time();
+          if (typeof t === 'number' && Number.isFinite(t)) {
+            return t;
+          }
+        }
+        if (el.video && typeof el.video.time === 'function') {
+          const t = el.video.time();
+          if (typeof t === 'number' && Number.isFinite(t)) {
+            return t;
+          }
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
+
+    // 3. Fallback to Wistia.api ONLY if Wistia is confirmed initialized
+    try {
+      const wistiaObj = (window as any).Wistia;
+      if (wistiaObj && wistiaObj._initialized === true && typeof wistiaObj.api === 'function') {
+        const wistiaApi = wistiaObj.api(WISTIA_MEDIA_ID);
+        if (wistiaApi) {
+          if (!handleFoundRef.current) {
+            handleFoundRef.current = true;
+            setHandleFound(true);
+          }
+          if (typeof wistiaApi.time === 'function') {
+            const t = wistiaApi.time();
+            if (typeof t === 'number' && Number.isFinite(t)) {
+              return t;
+            }
+          }
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
+
     return null;
   };
 
-  // Step 1: Hook _wq handle in ref
+  // Step 1: Hook _wq handle and custom element events
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
     (window as any)._wq = (window as any)._wq || [];
     (window as any)._wq.push({
       id: WISTIA_MEDIA_ID,
@@ -135,32 +168,53 @@ export const GateProvider: React.FC<{ children: React.ReactNode }> = ({ children
         wqHandleRef.current = video;
         handleFoundRef.current = true;
         setHandleFound(true);
+
+        try {
+          if (typeof video.bind === 'function') {
+            video.bind('timechange', (t: number) => {
+              recordTime(t);
+            });
+            video.bind('play', () => {
+              setHasStartedPlaying(true);
+            });
+          }
+        } catch (e) {
+          // ignore
+        }
       },
     });
+
+    // Also attach listeners to <wistia-player> if present
+    const el = document.querySelector('wistia-player');
+    const handleTimeChange = (e: any) => {
+      const t = e?.detail?.seconds ?? e?.detail?.time ?? (el as any)?.currentTime ?? (el as any)?.time?.();
+      if (typeof t === 'number') {
+        recordTime(t);
+      }
+    };
+    const handlePlayEvent = () => {
+      setHasStartedPlaying(true);
+    };
+
+    if (el) {
+      el.addEventListener('timechange', handleTimeChange);
+      el.addEventListener('play', handlePlayEvent);
+    }
+
+    return () => {
+      if (el) {
+        el.removeEventListener('timechange', handleTimeChange);
+        el.removeEventListener('play', handlePlayEvent);
+      }
+    };
   }, []);
 
-  // Step 2: The Polling Loop (250ms interval)
+  // Step 2: The Polling Loop (250ms interval) as fallback tracker
   useEffect(() => {
     const id = setInterval(() => {
       const t = getCurrentTime();
       if (t === null) return; // handle not ready yet
-
-      const sec = Math.floor(t);
-      if (!Number.isFinite(sec) || sec < 0) return;
-
-      setHasStartedPlaying(true);
-      setWatchedSeconds((prev) => {
-        if (prev.has(sec)) return prev;
-        const next = new Set(prev);
-        next.add(sec);
-        try {
-          const arr = Array.from(next).filter((n) => typeof n === 'number' && Number.isFinite(n));
-          sessionStorage.setItem('pbos_watched_v2', JSON.stringify(arr));
-        } catch (err) {
-          console.error(err);
-        }
-        return next;
-      });
+      recordTime(t);
     }, 250);
 
     return () => clearInterval(id);
@@ -194,7 +248,7 @@ export const GateProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [isUnlocked]);
 
-  // Method to trigger play on the video
+  // Method to trigger play on the video safely
   const playVideo = () => {
     setHasStartedPlaying(true);
     try {
@@ -203,14 +257,15 @@ export const GateProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (e) {}
 
-    try {
-      const wistiaApi = (window as any).Wistia?.api?.(WISTIA_MEDIA_ID);
-      if (wistiaApi && typeof wistiaApi.play === 'function') {
-        wistiaApi.play();
+    // 1. Try the _wq onReady handle
+    if (wqHandleRef.current && typeof wqHandleRef.current.play === 'function') {
+      try {
+        wqHandleRef.current.play();
         return;
-      }
-    } catch (e) {}
+      } catch (e) {}
+    }
 
+    // 2. Try the <wistia-player> DOM element
     try {
       const el = document.querySelector('wistia-player') as any;
       if (el && typeof el.play === 'function') {
@@ -219,11 +274,17 @@ export const GateProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (e) {}
 
-    if (wqHandleRef.current && typeof wqHandleRef.current.play === 'function') {
-      try {
-        wqHandleRef.current.play();
-      } catch (e) {}
-    }
+    // 3. Fallback to Wistia.api only if Wistia is initialized
+    try {
+      const wistiaObj = (window as any).Wistia;
+      if (wistiaObj && wistiaObj._initialized === true && typeof wistiaObj.api === 'function') {
+        const wistiaApi = wistiaObj.api(WISTIA_MEDIA_ID);
+        if (wistiaApi && typeof wistiaApi.play === 'function') {
+          wistiaApi.play();
+          return;
+        }
+      }
+    } catch (e) {}
   };
 
   const openModal = () => setIsModalOpen(true);
@@ -242,6 +303,7 @@ export const GateProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const contextValue: GateContextType = {
     watchedSeconds,
     isUnlocked,
+    gateEnabled: GATE_ENABLED,
     remaining,
     handleFound,
     hasStartedPlaying,
