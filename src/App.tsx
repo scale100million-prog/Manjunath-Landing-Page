@@ -40,19 +40,20 @@ function MainContent() {
           {/* Badge to headline: 14px mobile / 28px desktop gap */}
           <div className="h-[14px] md:h-[28px]" />
 
-          {/* Hero Headline: 76-80px desktop, 24px mobile (22px on narrow 360px), extrabold, line height 1.2 mobile / 1.05 desktop, max-width 340px mobile / 1100px desktop */}
+          {/* Hero Headline: 3 lines on desktop and mobile, 10-15% reduced mobile font size, two-tone without underlines */}
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="w-full max-w-[340px] md:max-w-[1100px] mx-auto text-[22px] min-[375px]:text-[24px] md:text-[76px] lg:text-[80px] font-extrabold text-center leading-[1.2] md:leading-[1.05] tracking-[-0.02em]"
+            className="w-full max-w-[340px] md:max-w-[1050px] mx-auto text-[15px] min-[375px]:text-[15.5px] sm:text-[36px] md:text-[52px] lg:text-[56px] font-extrabold text-center leading-[1.18] md:leading-[1.14] tracking-[-0.02em]"
           >
             <span className="text-[#1A1A2E] block">
-              Lose 8 to 16 KG in 12 Weeks
+              <span className="block sm:inline">This Science Backed "Shortcut"</span>{' '}
+              <span className="block sm:inline">Burns 10-15 Kgs Of Fat From Your Body</span>
             </span>
             <span className="text-[#E24A17] block">
-              With Prime Body OS™
+              In Just 12 Weeks!
             </span>
           </motion.h1>
 
@@ -67,7 +68,7 @@ function MainContent() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="w-full max-w-[340px] md:max-w-[700px] mx-auto text-[14px] md:text-[19px] text-[#4A4B65] text-center leading-[1.5] md:leading-[1.75]"
           >
-            <span className="font-bold text-[#1A1A2E]">950+</span> working professionals across India and the US lost <span className="font-bold text-[#1A1A2E]">8 to 16 KG in 12 weeks</span> without extreme diet or endless gym hours. <span className="font-bold text-[#E24A17]">Lose the weight or 100% refund.</span>
+            Introducing: PrimeBodyOS™ - The New Way To <span className="font-bold text-[#E24A17]">Lose Fat, Build Muscle</span> And Transform Your Body In Just 12 Weeks—<span className="font-bold text-[#E24A17]">Without Extreme Diets Or Endless Gym Hours!</span>
           </motion.p>
 
           {/* Subheadline to video: 20px mobile / 48px desktop gap */}

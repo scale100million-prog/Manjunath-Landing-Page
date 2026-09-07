@@ -23,8 +23,8 @@ export const StickyFooter: React.FC<StickyFooterProps> = ({
     >
       <div className="w-full max-w-[1200px] mx-auto flex items-center justify-between gap-3 sm:gap-6">
         
-        {/* LEFT — Icon circle + Unlock status text */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* LEFT — Icon circle + Unlock status text (hidden on mobile, visible on sm and up) */}
+        <div className="hidden sm:flex items-center gap-3 shrink-0">
           {/* 48px circle, PRIMARY COLOR at 15% opacity */}
           <div className="w-12 h-12 rounded-full bg-[#E24A17]/15 flex items-center justify-center shrink-0">
             <AnimatePresence mode="wait">
@@ -54,8 +54,8 @@ export const StickyFooter: React.FC<StickyFooterProps> = ({
             </AnimatePresence>
           </div>
 
-          {/* Text status (hidden on mobile, visible on sm and up) with 300ms fade */}
-          <div className="hidden sm:flex flex-col">
+          {/* Text status with 300ms fade */}
+          <div className="flex flex-col">
             <AnimatePresence mode="wait">
               {!isUnlocked ? (
                 <motion.div
@@ -94,8 +94,8 @@ export const StickyFooter: React.FC<StickyFooterProps> = ({
           </div>
         </div>
 
-        {/* RIGHT — button */}
-        <div className="flex-1 sm:flex-initial flex justify-end">
+        {/* RIGHT — button (full width on mobile) */}
+        <div className="w-full sm:w-auto flex-1 sm:flex-initial flex justify-center sm:justify-end">
           {isUnlocked ? (
             <a
               id="sticky-cta-btn"
